@@ -14,14 +14,16 @@ public class Animal implements IMapElement {
     private int energy;
     private int children;
     private IPositionChangeObserver observer;
+    private boolean tracked;
 
-    public Animal(AbstractWorldMap map, Vector2d initialPosition, ArrayList<Integer> gens, int energy, int ID){
+    public Animal(AbstractWorldMap map, Vector2d initialPosition, ArrayList<Integer> gens, int energy, int ID, boolean tracked){
         this.map = map;
         this.position = initialPosition;
         this.gens = gens;
         this.energy = energy;
         this.ID = ID;
         this.children = 0;
+        this.tracked = tracked;
         Random rand = new Random();
         int chance = rand.nextInt(8);
         direction = MapDirection.NORTH;
@@ -45,6 +47,8 @@ public class Animal implements IMapElement {
     //    public int getStartEnergy(){return map.startEnergy;}
     public int getEnergy(){return energy;}
     public void setEnergy(int energy){this.energy = energy;}
+    public boolean getTracked(){return this.tracked;}
+    public void setTracked(boolean bool){this.tracked = bool;}
     public void feed(int food){
         this.energy += food;
     }
@@ -97,7 +101,7 @@ public class Animal implements IMapElement {
         observer.positionChanged(oldPosition, this.position, this.map);
     }
 
-    public Animal copulate(Animal ani2, int newID){ //obecne zwierze + argument = nowe zwracane zwierze
+    public Animal copulate(Animal ani2, int newID, boolean tracked){ //obecne zwierze + argument = nowe zwracane zwierze
         int energy = ani2.getEnergy();
         ArrayList<Integer> gens = ani2.getGens();
         Random rand = new Random();
@@ -124,7 +128,7 @@ public class Animal implements IMapElement {
         ani2.setEnergy(energy*3/4);
         this.children+=1;                           //dodanie dzieci
         ani2.makeChildren();
-        return new Animal(this.map, this.position, newGens, newEnergy, newID);
+        return new Animal(this.map, this.position, newGens, newEnergy, newID, tracked);
     }
     public void addObserver(IPositionChangeObserver observer){this.observer=observer;}
 }

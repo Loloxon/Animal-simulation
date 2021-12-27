@@ -1,5 +1,7 @@
 package simulation.gui;
 
+import javafx.event.EventHandler;
+import javafx.scene.input.MouseEvent;
 import simulation.*;
 import com.sun.jdi.IntegerValue;
 import javafx.application.Application;
@@ -39,8 +41,8 @@ public class App extends Application implements IPositionChangeObserver {
     SimulationEngine engine2;
     private static final DecimalFormat df = new DecimalFormat("0.00");
 
-    boolean engine1Running;
-    boolean engine2Running;
+//    boolean engine1Running;
+//    boolean engine2Running;
 
     HashMap<MapDirection, Image> imageAnimals = new HashMap<>();
     Image imageGrass;
@@ -151,14 +153,25 @@ public class App extends Application implements IPositionChangeObserver {
     }
 
     void updateGrid(AbstractWorldMap map, GuiElementBox[][] matrix, Vector2d position){
+        int x = position.x;
+        int y = position.y;
         Object object = map.objectAt(position);
         if(object instanceof Animal a) {
-            matrix[position.x][position.y].update(imageAnimals.get(a.getDirection()), a.getEnergy());
+            matrix[x][y].update(imageAnimals.get(a.getDirection()), a.getEnergy());
+            matrix[x][y].view.setOnMouseClicked(new EventHandler<MouseEvent>() {
+                @Override
+                public void handle(MouseEvent event) {
+                    if(!engine1.getRunning()) {
+                        System.out.println(a.getStringGens());
+                        map1.setTrackedAnimal(a);
+                    }
+                }
+            });
         }
         else if(object instanceof Grass)
-            matrix[position.x][position.y].update(imageGrass, -1);
+            matrix[x][y].update(imageGrass, -1);
         else
-            matrix[position.x][position.y].update(imageNothing, -1);
+            matrix[x][y].update(imageNothing, -1);
     }
     @Override
     public void start(Stage primaryStage){
@@ -305,24 +318,24 @@ public class App extends Application implements IPositionChangeObserver {
             if(startStop1.isSelected()){
                 engine1.setRunning(false);
                 startStop1.setText("Start");
-                engine1Running = false;
+//                engine1Running = false;
             }
             else{
                 engine1.setRunning(true);
                 startStop1.setText("Stop");
-                engine1Running = true;
+//                engine1Running = true;
             }
         });
         startStop2.setOnAction(e -> {
             if(startStop2.isSelected()){
                 engine2.setRunning(false);
                 startStop2.setText("Start");
-                engine2Running = false;
+//                engine2Running = false;
             }
             else{
                 engine2.setRunning(true);
                 startStop2.setText("Stop");
-                engine2Running = true;
+//                engine2Running = true;
             }
         });
 
@@ -332,7 +345,7 @@ public class App extends Application implements IPositionChangeObserver {
         stats2.setDefaultButton(true);
 
         stats1.setOnAction(e -> {
-            if(engine1Running) {
+            if(engine1.getRunning()) {
                 labelStats1.setText("First stop the simulation!");
             }
             else {
@@ -346,7 +359,7 @@ public class App extends Application implements IPositionChangeObserver {
             }
         });
         stats2.setOnAction(e -> {
-            if(engine2Running) {
+            if(engine2.getRunning()) {
                 labelStats2.setText("First stop the simulation!");
             }
             else {
@@ -460,7 +473,7 @@ public class App extends Application implements IPositionChangeObserver {
         second.setAlignment(Pos.CENTER);
 
         buttonGenotype1.setOnAction(e -> {
-            if(engine1Running) {
+            if(engine1.getRunning()) {
                 labelStats1.setText("First stop the simulation!");
             }
             else
@@ -468,7 +481,7 @@ public class App extends Application implements IPositionChangeObserver {
 //                labelStats1.setText("Saved!");
         });
         buttonGenotype2.setOnAction(e -> {
-            if(engine2Running) {
+            if(engine2.getRunning()) {
                 labelStats2.setText("First stop the simulation!");
             }
             else
@@ -522,9 +535,9 @@ public class App extends Application implements IPositionChangeObserver {
         primaryStage.setScene(scene1);
         primaryStage.show();
         engineThread1.start();
-        engine1Running = true;
+//        engine1Running = true;
         engineThread2.start();
-        engine2Running = true;
+//        engine2Running = true;
     }
 
     void showGenotypes(String genotype, AbstractWorldMap map, GuiElementBox[][] matrix){
@@ -543,6 +556,11 @@ public class App extends Application implements IPositionChangeObserver {
 
     public void dayEnded(SimulationEngine engine, AbstractWorldMap map){
         Platform.runLater(() -> stats(engine, map));
+        int[] trackingInfo = map.getTrackedInfo();
+        for(int i:trackingInfo){
+            System.out.print(i);
+        }
+        System.out.println();
     }
 
     @Override

@@ -12,13 +12,14 @@ public class SimulationEngine implements Runnable, IPositionChangeObserver {
     int animalNO;
     boolean running;
     IPositionChangeObserver observer;
-    int days;
     int delay;
     int chartValueNo;
 
     ArrayList<ArrayList<Double>> chartsInfo = new ArrayList<>();
     Double[] chartsSummarize;
     ArrayList<String> chartsOrder = new ArrayList<>();
+
+    int[] trackedInfo = new int[3];
 
 //    public List<Animal> getA() {
 //        return A;
@@ -42,7 +43,6 @@ public class SimulationEngine implements Runnable, IPositionChangeObserver {
         this.animals = map.getAnimals();
         this.grasses = map.getGrasses();
         this.running = true;
-        this.days = 0;
         this.delay = delay;
         this.chartValueNo = chartValueNo;
     }
@@ -62,6 +62,7 @@ public class SimulationEngine implements Runnable, IPositionChangeObserver {
     }
     public ArrayList<ArrayList<Double>> getChartsInfo(){return chartsInfo;}
     public Double[] getChartsSummarize(){
+        int days = map.getDays();
         for(int i=0;i<chartsInfo.size();i++){
             chartsSummarize[i] /= days;
         }
@@ -69,6 +70,8 @@ public class SimulationEngine implements Runnable, IPositionChangeObserver {
     }
     public ArrayList<String> getChartsOrder(){return  chartsOrder;}
     public void setRunning(boolean bool){this.running = bool;}
+    public boolean getRunning(){return this.running;}
+
     public void setObserver(IPositionChangeObserver observer){this.observer = observer;}
 
     public void addAnimals() {
@@ -99,7 +102,7 @@ public class SimulationEngine implements Runnable, IPositionChangeObserver {
 //            positions[j] = new Vector2d(rand.nextInt(width), rand.nextInt(height));
         }
         for (int i = 0; i < animalNO; i++) {
-            map.place(new Animal(map, positions[i], gens.get(i), startEnergy, i+1), true);
+            map.place(new Animal(map, positions[i], gens.get(i), startEnergy, i+1, false), true);
         }
     }
 
@@ -148,7 +151,7 @@ public class SimulationEngine implements Runnable, IPositionChangeObserver {
                     for (Animal a : A) {
                         a.oldering();
                     }
-                    this.days+=1;
+                    map.nextDay();
                     refreshData();
                     observer.dayEnded(this, this.map);
                 }

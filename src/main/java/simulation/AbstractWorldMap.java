@@ -21,12 +21,16 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
     float sumAge;
     int magicUses;
     int whichMap;
+    int days;
     //    public boolean magicHappened;
     double[] noGens = new double[8];
     CopyOnWriteArrayList<String> genotypes = new CopyOnWriteArrayList<>();
     Vector2d jungleLL;
     Vector2d jungleUR;
     IPositionChangeObserver observer;
+
+    Animal trackedAnimal;
+    int[] trackedInfo = new int[4];
 
     public AbstractWorldMap(int width, int height, int startEnergy, int moveEnergy, int plantEnergy, int jungleRatio, int magicUses, int whichMap){
         this.maxID = 0;
@@ -40,6 +44,7 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
         this.jungleRatio = jungleRatio;
         this.magicUses = magicUses;
         this.whichMap = whichMap;
+        this.days = 0;
 //        this.magicHappened = false;
         jungleLL = new Vector2d((width-1)*(100-jungleRatio)/200,(height-1)*(100-jungleRatio)/200);
         jungleUR = new Vector2d((width-1)*(100+jungleRatio)/200,(height-1)*(100+jungleRatio)/200);
@@ -65,6 +70,23 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
         return animals;
     }
     public Map<Vector2d, Grass> getGrasses(){return grasses;}
+    public void nextDay(){this.days+=1;}
+    public int getDays(){return days;}
+    public void setTrackedAnimal(Animal a){
+        for(Animal tmp:A){
+            tmp.setTracked(false);
+        }
+        a.setTracked(true);
+        this.trackedAnimal = a;
+        trackedInfo[0] = 0;
+        trackedInfo[1] = 0;
+        trackedInfo[2] = -1;
+        trackedInfo[3] = -1;
+    }
+    public int[] getTrackedInfo(){ //children, offsprings, when died
+        return trackedInfo;
+    }
+
     public String toString(){return super.toString();}
     public double avgAge(){
         if(deadA == 0)
@@ -83,9 +105,9 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
         return genotypes;
     }
 
-    public List<Animal> getStrongest(Vector2d v, boolean if2nd){
-        List<Animal> animals1 = new CopyOnWriteArrayList<>();
-        List<Animal> animals2 = new CopyOnWriteArrayList<>();
+    public ArrayList<Animal> getStrongest(Vector2d v, boolean if2nd){
+        ArrayList<Animal> animals1 = new ArrayList<>();
+        ArrayList<Animal> animals2 = new ArrayList<>();
         for(Animal a:A){
             if(a.getPosition().equals(v))
                 animals1.add(a);
@@ -175,6 +197,10 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
                             break;
                         }
                     }
+                    if(A.get(i).equals(trackedAnimal)){
+                        trackedInfo[2] = days;
+                        trackedInfo[3] = A.get(i).getAge();
+                    }
                     this.deadA+=1;
                     this.sumAge+=A.get(i).getAge();
                     observer.positionChanged(A.get(i).getPosition(),A.get(i).getPosition(), this);
@@ -233,8 +259,16 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
         for(Vector2d v:cords){
             List<Animal> animals1= getStrongest(v,true);
             if(animals1.size()>1) {
-                if (animals1.get(0).getEnergy() >= startEnergy / 2 && animals1.get(1).getEnergy() >= startEnergy / 2)
-                    place(animals1.get(0).copulate(animals1.get(1), maxID + 1), false);
+                if (animals1.get(0).getEnergy() >= startEnergy / 2 && animals1.get(1).getEnergy() >= startEnergy / 2) {
+                    if(animals1.get(0).getTracked() || animals1.get(1).getTracked()) {
+                        trackedInfo[1] += 1;
+                        if (animals1.get(0).equals(trackedAnimal) || animals1.get(1).equals(trackedAnimal)) {
+                            trackedInfo[0] += 1;
+                        }
+                        place(animals1.get(0).copulate(animals1.get(1), maxID + 1, true), false);
+                    }
+                    place(animals1.get(0).copulate(animals1.get(1), maxID + 1, false), false);
+                }
             }
         }
     }
@@ -291,7 +325,7 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
 //                pos.add(newPos);
 //            }
             for(int i=0;i<5;i++){
-                this.place(new Animal(this, pos.get(i), A.get(i).getGens(), this.startEnergy, this.maxID+1), false);
+                this.place(new Animal(this, pos.get(i), A.get(i).getGens(), this.startEnergy, this.maxID+1, false), false);
             }
             magicUses-=1;
             observer.magicHappened(3-magicUses, this);
@@ -301,10 +335,9 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
     public abstract boolean canMoveTo(Vector2d position);
 
     public IMapElement objectAt(Vector2d position){
-        for(Animal a:A){
-            if(a.getPosition().equals(position))
-                return a;
-        }
+        ArrayList<Animal> animalsOnPosition = getStrongest(position,false);
+        if(animalsOnPosition.size()>0)
+            return animalsOnPosition.get(0);
         for(Grass g:G){
             if(g.getPosition().equals(position))
                 return g;
