@@ -83,7 +83,7 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
         trackedInfo[2] = -1;
         trackedInfo[3] = -1;
     }
-    public int[] getTrackedInfo(){ //children, offsprings, when died
+    public int[] getTrackedInfo(){ //children, offsprings, when died, how old
         return trackedInfo;
     }
 
@@ -93,13 +93,6 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
             return 0;
         return sumAge/deadA;
     }
-//    public double[] avgGens(){
-//        double[] avGens = new double[8];
-//        for(int i=0;i<8;i++){
-//            avGens[i]=noGens[i]/maxID;
-//        }
-//        return avGens;
-//    }
 
     public CopyOnWriteArrayList<String> getGenotypes(){
         return genotypes;

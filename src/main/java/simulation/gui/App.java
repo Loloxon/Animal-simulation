@@ -296,7 +296,7 @@ public class App extends Application implements IPositionChangeObserver {
             createGrid(grid2, matrix2);
             prepareGrid(matrix1, map1);
             prepareGrid(matrix2, map2);
-            System.out.println(map1.getA().size());
+//            System.out.println(map1.getA().size());
             primaryStage.close();
             simulate(primaryStage);
         });
@@ -306,14 +306,11 @@ public class App extends Application implements IPositionChangeObserver {
         primaryStage.setTitle("World");
 
         Thread engineThread1;
-        Thread engineThread2;
         engineThread1 = new Thread(engine1);
-        engineThread2 = new Thread(engine2);
 
         ToggleButton startStop1 = new ToggleButton("Stop");
         startStop1.setSelected(false);
-        ToggleButton startStop2 = new ToggleButton("Stop");
-        startStop2.setSelected(false);
+
         startStop1.setOnAction(e -> {
             if(startStop1.isSelected()){
                 engine1.setRunning(false);
@@ -326,24 +323,10 @@ public class App extends Application implements IPositionChangeObserver {
 //                engine1Running = true;
             }
         });
-        startStop2.setOnAction(e -> {
-            if(startStop2.isSelected()){
-                engine2.setRunning(false);
-                startStop2.setText("Start");
-//                engine2Running = false;
-            }
-            else{
-                engine2.setRunning(true);
-                startStop2.setText("Stop");
-//                engine2Running = true;
-            }
-        });
 
         Button stats1 = new Button("Stats -> CSV");
         stats1.setDefaultButton(true);
-        Button stats2 = new Button("Stats -> CSV");
-        stats2.setDefaultButton(true);
-
+        Button exit = new Button("Exit");
         stats1.setOnAction(e -> {
             if(engine1.getRunning()) {
                 labelStats1.setText("First stop the simulation!");
@@ -358,33 +341,14 @@ public class App extends Application implements IPositionChangeObserver {
                 }
             }
         });
-        stats2.setOnAction(e -> {
-            if(engine2.getRunning()) {
-                labelStats2.setText("First stop the simulation!");
-            }
-            else {
-                labelStats2.setText("Saved!");
-                try {
-                    new Statistics().saveToCSV(engine2, 2, chartValueNo);
-//                saveToCSV(engine2);
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        });
-
 
         HBox maps = new HBox();
         maps.setAlignment(Pos.CENTER);
         VBox first = new VBox();
-        VBox second = new VBox();
         HBox gensInfo1 = new HBox();
-        HBox gensInfo2 = new HBox();
         HBox buttonMagic1 = new HBox();
-        HBox buttonMagic2 = new HBox();
 
         Button buttonGenotype1 = new Button("Show animals with this genotype");
-        Button buttonGenotype2 = new Button("Show animals with this genotype");
 
         first.getChildren().add(grid1);
 
@@ -414,7 +378,6 @@ public class App extends Application implements IPositionChangeObserver {
             }
         };
         engine1.setChartsInfo(chartsOrder);
-        engine2.setChartsInfo(chartsOrder);
 
         ArrayList<NumberAxis> allxAxis = new ArrayList<>();
         ArrayList<NumberAxis> allyAxis = new ArrayList<>();
@@ -443,16 +406,74 @@ public class App extends Application implements IPositionChangeObserver {
             allChartSeries.get(i).setName(chartsOrder.get(i));
         }
 
-
         HBox chartsFirstRow = new HBox();
-        HBox chartsSecondRow = new HBox();
         for(int i=0;i<2;i++)
             chartsFirstRow.getChildren().add(allCharts.get(i));
+        HBox chartsSecondRow = new HBox();
         for(int i=2;i<4;i++)
             chartsSecondRow.getChildren().add(allCharts.get(i));
 
         first.getChildren().add(chartsFirstRow);
         first.getChildren().add(chartsSecondRow);
+
+        buttonGenotype1.setOnAction(e -> {
+            if(engine1.getRunning()) {
+                labelStats1.setText("First stop the simulation!");
+            }
+            else
+                showGenotypes(genotype1, map1, matrix1);
+//                labelStats1.setText("Saved!");
+        });
+
+        maps.getChildren().add(first);
+
+
+
+        Thread engineThread2;
+        engineThread2 = new Thread(engine2);
+
+        ToggleButton startStop2 = new ToggleButton("Stop");
+        startStop2.setSelected(false);
+
+        startStop2.setOnAction(e -> {
+            if(startStop2.isSelected()){
+                engine2.setRunning(false);
+                startStop2.setText("Start");
+//                engine2Running = false;
+            }
+            else{
+                engine2.setRunning(true);
+                startStop2.setText("Stop");
+//                engine2Running = true;
+            }
+        });
+
+        Button stats2 = new Button("Stats -> CSV");
+        stats2.setDefaultButton(true);
+
+        stats2.setOnAction(e -> {
+            if(engine2.getRunning()) {
+                labelStats2.setText("First stop the simulation!");
+            }
+            else {
+                labelStats2.setText("Saved!");
+                try {
+                    new Statistics().saveToCSV(engine2, 2, chartValueNo);
+//                saveToCSV(engine2);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
+        VBox second = new VBox();
+        HBox gensInfo2 = new HBox();
+        HBox buttonMagic2 = new HBox();
+
+        Button buttonGenotype2 = new Button("Show animals with this genotype");
+
+        engine2.setChartsInfo(chartsOrder);
+
 
         second.getChildren().add(grid2);
 
@@ -472,14 +493,6 @@ public class App extends Application implements IPositionChangeObserver {
         second.getChildren().add(magic2);
         second.setAlignment(Pos.CENTER);
 
-        buttonGenotype1.setOnAction(e -> {
-            if(engine1.getRunning()) {
-                labelStats1.setText("First stop the simulation!");
-            }
-            else
-                showGenotypes(genotype1, map1, matrix1);
-//                labelStats1.setText("Saved!");
-        });
         buttonGenotype2.setOnAction(e -> {
             if(engine2.getRunning()) {
                 labelStats2.setText("First stop the simulation!");
@@ -526,10 +539,12 @@ public class App extends Application implements IPositionChangeObserver {
             chartsSecondRow2.getChildren().add(allCharts2.get(i));
 
         second.getChildren().add(chartsFirstRow2);
+        second.getChildren().add(exit);
         second.getChildren().add(chartsSecondRow2);
 
-        maps.getChildren().add(first);
         maps.getChildren().add(second);
+
+
 
         Scene scene1 = new Scene(maps, 1500, 1000);
         primaryStage.setScene(scene1);
@@ -538,6 +553,12 @@ public class App extends Application implements IPositionChangeObserver {
 //        engine1Running = true;
         engineThread2.start();
 //        engine2Running = true;
+
+        exit.setOnAction(e -> {
+            engineThread1.stop();
+            engineThread2.stop();
+            primaryStage.close();
+        });
     }
 
     void showGenotypes(String genotype, AbstractWorldMap map, GuiElementBox[][] matrix){
