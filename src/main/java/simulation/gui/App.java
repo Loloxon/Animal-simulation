@@ -1,6 +1,7 @@
 package simulation.gui;
 
 import javafx.event.EventHandler;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import simulation.*;
 import com.sun.jdi.IntegerValue;
@@ -50,24 +51,22 @@ public class App extends Application implements IPositionChangeObserver {
 
     ArrayList<XYChart.Series> allChartSeries;
     ArrayList<XYChart.Series> allChartSeries2;
-    GridPane grid1;
-    GridPane grid2;
+    GridPane grid1 = new GridPane();
+    GridPane grid2 = new GridPane();
+    GridPane trackingGrid1 = new GridPane();
+    GridPane trackingGrid2 = new GridPane();
 
     GuiElementBox[][] matrix1;
     GuiElementBox[][] matrix2;
 
-    Label magic1;
-    Label magic2;
+    Label magic1 = new Label();
+    Label magic2 = new Label();
 
     Label labelGens1 = new Label();
     Label labelGens2 = new Label();
 
     String genotype1 = "";
     String genotype2 = "";
-
-
-    Label labelStats1 = new Label();
-    Label labelStats2 = new Label();
 
     void stats(SimulationEngine engine, AbstractWorldMap map){
         ArrayList<String> chartsOrder = engine.getChartsOrder();
@@ -152,18 +151,24 @@ public class App extends Application implements IPositionChangeObserver {
         }
     }
 
-    void updateGrid(AbstractWorldMap map, GuiElementBox[][] matrix, Vector2d position){
+    void updateGrid(AbstractWorldMap map, GuiElementBox[][] matrix, Vector2d position, SimulationEngine engine, GridPane trackingGrid){
         int x = position.x;
         int y = position.y;
         Object object = map.objectAt(position);
+//        if(map.getTrackedAnimal()!=null && map.getTrackedAnimal().getPosition().equals(position))
+//            object = map.getTrackedAnimal();
         if(object instanceof Animal a) {
-            matrix[x][y].update(imageAnimals.get(a.getDirection()), a.getEnergy());
+//            if(map.getTrackedAnimal()==a)
+//                matrix[x][y].update(imageAnimals.get(a.getDirection()), -2);
+//            else
+               matrix[x][y].update(imageAnimals.get(a.getDirection()), a.getEnergy());
             matrix[x][y].view.setOnMouseClicked(new EventHandler<MouseEvent>() {
                 @Override
                 public void handle(MouseEvent event) {
-                    if(!engine1.getRunning()) {
-                        System.out.println(a.getStringGens());
-                        map1.setTrackedAnimal(a);
+                    if(!engine.getRunning()) {
+//                        System.out.println(a.getStringGens());
+                        map.setTrackedAnimal(a);
+                        updateTracking(map,trackingGrid);
                     }
                 }
             });
@@ -285,9 +290,7 @@ public class App extends Application implements IPositionChangeObserver {
             engine2 = new SimulationEngine(map2, this.animalNO, this.startEnergy, this.chartValueNo, this.delay);
             engine2.setObserver(this);
 
-            grid1 = new GridPane();
             grid1.setAlignment(Pos.CENTER);
-            grid2 = new GridPane();
             grid2.setAlignment(Pos.CENTER);
 
             matrix1 = new GuiElementBox[width][height];
@@ -302,87 +305,13 @@ public class App extends Application implements IPositionChangeObserver {
         });
     }
 
-    void simulate(Stage primaryStage){
-        primaryStage.setTitle("World");
+    VBox createCharts(ArrayList<String> chartsOrder, ArrayList<XYChart.Series> allChartSeries){
 
-        Thread engineThread1;
-        engineThread1 = new Thread(engine1);
-
-        ToggleButton startStop1 = new ToggleButton("Stop");
-        startStop1.setSelected(false);
-
-        startStop1.setOnAction(e -> {
-            if(startStop1.isSelected()){
-                engine1.setRunning(false);
-                startStop1.setText("Start");
-//                engine1Running = false;
-            }
-            else{
-                engine1.setRunning(true);
-                startStop1.setText("Stop");
-//                engine1Running = true;
-            }
-        });
-
-        Button stats1 = new Button("Stats -> CSV");
-        stats1.setDefaultButton(true);
-        Button exit = new Button("Exit");
-        stats1.setOnAction(e -> {
-            if(engine1.getRunning()) {
-                labelStats1.setText("First stop the simulation!");
-            }
-            else {
-                labelStats1.setText("Saved!");
-                try {
-                    new Statistics().saveToCSV(engine1, 1, chartValueNo);
-//                saveToCSV(engine1);
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        });
-
-        HBox maps = new HBox();
-        maps.setAlignment(Pos.CENTER);
-        VBox first = new VBox();
-        HBox gensInfo1 = new HBox();
-        HBox buttonMagic1 = new HBox();
-
-        Button buttonGenotype1 = new Button("Show animals with this genotype");
-
-        first.getChildren().add(grid1);
-
-        gensInfo1.getChildren().add(labelGens1);
-        gensInfo1.getChildren().add(buttonGenotype1);
-        gensInfo1.setAlignment(Pos.CENTER);
-
-        buttonMagic1.getChildren().add(startStop1);
-        buttonMagic1.getChildren().add(stats1);
-        buttonMagic1.getChildren().add(labelStats1);
-        magic1 = new Label();
-        buttonMagic1.setAlignment(Pos.CENTER);
-//        buttonMagic1.getChildren().add(magic1);
-
-        first.getChildren().add(gensInfo1);
-        first.getChildren().add(buttonMagic1);
-        first.getChildren().add(magic1);
-        first.setAlignment(Pos.CENTER);
-
-        ArrayList<String> chartsOrder = new ArrayList<>() {
-            {
-                add("animals");
-                add("grass");
-                add("avgEnergy");
-                add("avgAge");
-                add("avgChildren");
-            }
-        };
-        engine1.setChartsInfo(chartsOrder);
+        VBox boxCharts = new VBox();
 
         ArrayList<NumberAxis> allxAxis = new ArrayList<>();
         ArrayList<NumberAxis> allyAxis = new ArrayList<>();
         ArrayList<LineChart<Number,Number>> allCharts = new ArrayList<>();
-        allChartSeries = new ArrayList<>();
 
         for(int i=0;i<4;i++) {
             allxAxis.add(new NumberAxis());
@@ -405,154 +334,133 @@ public class App extends Application implements IPositionChangeObserver {
         for(int i=0;i<5;i++){
             allChartSeries.get(i).setName(chartsOrder.get(i));
         }
-
         HBox chartsFirstRow = new HBox();
         for(int i=0;i<2;i++)
             chartsFirstRow.getChildren().add(allCharts.get(i));
         HBox chartsSecondRow = new HBox();
         for(int i=2;i<4;i++)
             chartsSecondRow.getChildren().add(allCharts.get(i));
+        boxCharts.getChildren().add(chartsFirstRow);
+        boxCharts.getChildren().add(chartsSecondRow);
+        return boxCharts;
+    }
 
-        first.getChildren().add(chartsFirstRow);
-        first.getChildren().add(chartsSecondRow);
-
-        buttonGenotype1.setOnAction(e -> {
-            if(engine1.getRunning()) {
-                labelStats1.setText("First stop the simulation!");
-            }
-            else
-                showGenotypes(genotype1, map1, matrix1);
-//                labelStats1.setText("Saved!");
-        });
-
-        maps.getChildren().add(first);
-
-
-
-        Thread engineThread2;
-        engineThread2 = new Thread(engine2);
-
-        ToggleButton startStop2 = new ToggleButton("Stop");
-        startStop2.setSelected(false);
-
-        startStop2.setOnAction(e -> {
-            if(startStop2.isSelected()){
-                engine2.setRunning(false);
-                startStop2.setText("Start");
-//                engine2Running = false;
+    VBox createInfo(SimulationEngine engine, Label labelStats, AbstractWorldMap map,
+                    GuiElementBox[][] matrix, Label labelGens, Label magic, int mapNo){
+        VBox boxInfo = new VBox();
+        
+        ToggleButton startStop = new ToggleButton("Stop");
+        startStop.setSelected(false);
+        startStop.setOnAction(e -> {
+            if(startStop.isSelected()){
+                engine.setRunning(false);
+                startStop.setText("Start");
+//                engineRunning = false;
             }
             else{
-                engine2.setRunning(true);
-                startStop2.setText("Stop");
-//                engine2Running = true;
+                engine.setRunning(true);
+                startStop.setText("Stop");
+//                engineRunning = true;
             }
         });
 
-        Button stats2 = new Button("Stats -> CSV");
-        stats2.setDefaultButton(true);
-
-        stats2.setOnAction(e -> {
-            if(engine2.getRunning()) {
-                labelStats2.setText("First stop the simulation!");
+        Button stats = new Button("Stats -> CSV");
+        stats.setDefaultButton(true);
+        stats.setOnAction(e -> {
+            if(engine.getRunning()) {
+                labelStats.setText("First stop the simulation!");
             }
             else {
-                labelStats2.setText("Saved!");
+                labelStats.setText("Saved!");
                 try {
-                    new Statistics().saveToCSV(engine2, 2, chartValueNo);
-//                saveToCSV(engine2);
+                    new Statistics().saveToCSV(engine, mapNo, chartValueNo);
+//                saveToCSV(engine);
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
             }
         });
 
-        VBox second = new VBox();
-        HBox gensInfo2 = new HBox();
-        HBox buttonMagic2 = new HBox();
-
-        Button buttonGenotype2 = new Button("Show animals with this genotype");
-
-        engine2.setChartsInfo(chartsOrder);
-
-
-        second.getChildren().add(grid2);
-
-        gensInfo2.getChildren().add(labelGens2);
-        gensInfo2.getChildren().add(buttonGenotype2);
-        gensInfo2.setAlignment(Pos.CENTER);
-
-        buttonMagic2.getChildren().add(startStop2);
-        buttonMagic2.getChildren().add(stats2);
-        buttonMagic2.getChildren().add(labelStats2);
-        magic2 = new Label();
-        buttonMagic2.setAlignment(Pos.CENTER);
-//        buttonMagic2.getChildren().add(magic2);
-
-        second.getChildren().add(gensInfo2);
-        second.getChildren().add(buttonMagic2);
-        second.getChildren().add(magic2);
-        second.setAlignment(Pos.CENTER);
-
-        buttonGenotype2.setOnAction(e -> {
-            if(engine2.getRunning()) {
-                labelStats2.setText("First stop the simulation!");
+        Button buttonGenotype = new Button("Show animals with this genotype");
+        stats.setDefaultButton(true);
+        buttonGenotype.setOnAction(e -> {
+            if(engine.getRunning()) {
+                labelStats.setText("First stop the simulation!");
             }
-            else
-                showGenotypes(genotype2, map2, matrix2);
-//                labelStats2.setText("Saved!");
+            else {
+                showGenotypes(map, mapNo, matrix);
+                labelStats.setText("Animals showed");
+            }
         });
 
+        HBox gensInfo = new HBox();
+        gensInfo.getChildren().add(labelGens);
+        gensInfo.getChildren().add(buttonGenotype);
+        gensInfo.setAlignment(Pos.CENTER);
+        boxInfo.getChildren().add(gensInfo);
 
-        ArrayList<NumberAxis> allxAxis2 = new ArrayList<>();
-        ArrayList<NumberAxis> allyAxis2 = new ArrayList<>();
-        ArrayList<LineChart<Number,Number>> allCharts2 = new ArrayList<>();
+        HBox buttonMagic = new HBox();
+        buttonMagic.getChildren().add(startStop);
+        buttonMagic.getChildren().add(stats);
+        buttonMagic.getChildren().add(labelStats);
+        buttonMagic.setAlignment(Pos.CENTER);
+        boxInfo.getChildren().add(buttonMagic);
+
+        boxInfo.getChildren().add(magic);
+        boxInfo.setAlignment(Pos.CENTER);
+        return boxInfo;
+    }
+
+    void simulate(Stage primaryStage){
+        primaryStage.setTitle("World");
+        Button exit = new Button("Exit");
+        HBox maps = new HBox();
+        maps.setAlignment(Pos.CENTER);
+
+        ArrayList<String> chartsOrder = new ArrayList<>() {
+            {
+                add("animals");
+                add("grass");
+                add("avgEnergy");
+                add("avgAge");
+                add("avgChildren");
+            }
+        };
+
+        Thread engineThread1;
+        engineThread1 = new Thread(engine1);
+        engine1.setChartsInfo(chartsOrder);
+
+        VBox first = new VBox();
+        first.getChildren().add(grid1);
+        first.getChildren().add(trackingGrid1);
+        first.getChildren().add(createInfo(engine1, new Label(), map1, matrix1, labelGens1, magic1, 1));
+        
+        allChartSeries = new ArrayList<>();
+        first.getChildren().add(createCharts(chartsOrder, allChartSeries));
+
+        maps.getChildren().add(first);
+
+        Thread engineThread2;
+        engineThread2 = new Thread(engine2);
+        engine2.setChartsInfo(chartsOrder);
+
+        VBox second = new VBox();
+        second.getChildren().add(grid2);
+        second.getChildren().add(trackingGrid2);
+        second.getChildren().add(createInfo(engine2, new Label(), map2, matrix2, labelGens2, magic2, 2));
+
         allChartSeries2 = new ArrayList<>();
+        second.getChildren().add(createCharts(chartsOrder, allChartSeries2));
 
-        for(int i=0;i<4;i++) {
-            allxAxis2.add(new NumberAxis());
-            allxAxis2.get(i).setForceZeroInRange(false);
-            allyAxis2.add(new NumberAxis());
-            allCharts2.add(new LineChart<Number, Number>(allxAxis2.get(i), allyAxis2.get(i)));
-            allCharts2.get(i).setCreateSymbols(false);
-        }
-        for(int i=0;i<2;i++) {
-            allChartSeries2.add(new XYChart.Series());
-            allCharts2.get(0).getData().add(allChartSeries2.get(i));
-            allCharts2.get(0).setAnimated(false);
-        }
-        for(int i=2;i<5;i++) {
-            allChartSeries2.add(new XYChart.Series());
-            allCharts2.get(i-1).getData().add(allChartSeries2.get(i));
-            allCharts2.get(i-1).setAnimated(false);
-        }
-
-        for(int i=0;i<5;i++){
-            allChartSeries2.get(i).setName(chartsOrder.get(i));
-        }
-
-
-        HBox chartsFirstRow2 = new HBox();
-        HBox chartsSecondRow2 = new HBox();
-        for(int i=0;i<2;i++)
-            chartsFirstRow2.getChildren().add(allCharts2.get(i));
-        for(int i=2;i<4;i++)
-            chartsSecondRow2.getChildren().add(allCharts2.get(i));
-
-        second.getChildren().add(chartsFirstRow2);
-        second.getChildren().add(exit);
-        second.getChildren().add(chartsSecondRow2);
-
+        maps.getChildren().add(exit);
         maps.getChildren().add(second);
 
-
-
-        Scene scene1 = new Scene(maps, 1500, 1000);
-        primaryStage.setScene(scene1);
+        Scene scene = new Scene(maps, 1500, 1000);
+        primaryStage.setScene(scene);
         primaryStage.show();
         engineThread1.start();
-//        engine1Running = true;
         engineThread2.start();
-//        engine2Running = true;
 
         exit.setOnAction(e -> {
             engineThread1.stop();
@@ -561,7 +469,12 @@ public class App extends Application implements IPositionChangeObserver {
         });
     }
 
-    void showGenotypes(String genotype, AbstractWorldMap map, GuiElementBox[][] matrix){
+    void showGenotypes(AbstractWorldMap map, int mapNo, GuiElementBox[][] matrix){
+        String genotype;
+        if(mapNo==1)
+            genotype = genotype1;
+        else
+            genotype = genotype2;
         CopyOnWriteArrayList<Animal> A = map.getA();
         for(Animal a:A){
 //            System.out.println(a.getStringGens());
@@ -575,27 +488,71 @@ public class App extends Application implements IPositionChangeObserver {
         }
     }
 
+    
+    void updateTracking(AbstractWorldMap map, GridPane trackingGrid){
+        trackingGrid.setGridLinesVisible(false);
+        trackingGrid.getChildren().clear();
+        trackingGrid.getColumnConstraints().clear();
+        trackingGrid.getRowConstraints().clear();
+        trackingGrid.setGridLinesVisible(true);
+        for(int i=0;i<2;i++)
+            trackingGrid.getRowConstraints().add(new RowConstraints(30));
+        for(int i=0;i<4;i++)
+            trackingGrid.getColumnConstraints().add(new ColumnConstraints(100));
+        trackingGrid.getColumnConstraints().add(new ColumnConstraints(300));
+//        Label[] labels = new Label[5];
+//        labels[0] = new Label("children");
+//        labels[1] = new Label("children");
+//        labels[2] = new Label("children");
+//        labels[3] = new Label("children");
+//        labels[4] = new Label("children");
+        trackingGrid.add(new Label("children"),0,0);
+        trackingGrid.add(new Label("offsprings"),1,0);
+        trackingGrid.add(new Label("day of death"),2,0);
+        trackingGrid.add(new Label("age"),3,0);
+        trackingGrid.add(new Label("genotype"),4,0);
+        int[] info = map.getTrackedInfo();
+        if(map.getTrackedAnimal() == null){
+            for(int i=0;i<5;i++)
+                trackingGrid.add(new Label("-"),i,1);
+        }
+        else {
+            for (int i = 0; i < 4; i++) {
+                if(info[i]==-1)
+                    trackingGrid.add(new Label("It's still alive!"), i, 1);
+                else
+                    trackingGrid.add(new Label(Integer.toString(info[i])), i, 1);
+            }
+            trackingGrid.add(new Label(map.getTrackedAnimal().getStringGens()), 4, 1);
+        }
+        trackingGrid.setAlignment(Pos.CENTER);
+    }
+    
     public void dayEnded(SimulationEngine engine, AbstractWorldMap map){
         Platform.runLater(() -> stats(engine, map));
+        if(map == map1)
+            Platform.runLater(() -> updateTracking(map, trackingGrid1));
+        else
+            Platform.runLater(() -> updateTracking(map, trackingGrid2));
         int[] trackingInfo = map.getTrackedInfo();
-        for(int i:trackingInfo){
-            System.out.print(i);
-        }
-        System.out.println();
+//        for(int i:trackingInfo){
+//            System.out.print(i);
+//        }
+//        System.out.println();
     }
 
     @Override
     public void positionChanged(Vector2d oldPosition, Vector2d newPosition, AbstractWorldMap map) {
         if(map == map1) {
             Platform.runLater(() -> {
-                updateGrid(map1, matrix1, oldPosition);
-                updateGrid(map1, matrix1, newPosition);
+                updateGrid(map1, matrix1, oldPosition, engine1, trackingGrid1);
+                updateGrid(map1, matrix1, newPosition, engine1, trackingGrid1);
             });
         }
         if(map == map2){
             Platform.runLater(() -> {
-                updateGrid(map2, matrix2, oldPosition);
-                updateGrid(map2, matrix2, newPosition);
+                updateGrid(map2, matrix2, oldPosition, engine2, trackingGrid2);
+                updateGrid(map2, matrix2, newPosition, engine2, trackingGrid2);
             });
         }
     }

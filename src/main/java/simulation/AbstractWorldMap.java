@@ -30,7 +30,7 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
     IPositionChangeObserver observer;
 
     Animal trackedAnimal;
-    int[] trackedInfo = new int[4];
+    int[] trackedInfo = new int[4];//children, offsprings, when died, age
 
     public AbstractWorldMap(int width, int height, int startEnergy, int moveEnergy, int plantEnergy, int jungleRatio, int magicUses, int whichMap){
         this.maxID = 0;
@@ -70,7 +70,10 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
         return animals;
     }
     public Map<Vector2d, Grass> getGrasses(){return grasses;}
-    public void nextDay(){this.days+=1;}
+    public void nextDay(){
+        this.days+=1;
+        trackedInfo[3]+=1;
+    }
     public int getDays(){return days;}
     public void setTrackedAnimal(Animal a){
         for(Animal tmp:A){
@@ -81,10 +84,13 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
         trackedInfo[0] = 0;
         trackedInfo[1] = 0;
         trackedInfo[2] = -1;
-        trackedInfo[3] = -1;
+        trackedInfo[3] = a.getAge();
     }
     public int[] getTrackedInfo(){ //children, offsprings, when died, how old
         return trackedInfo;
+    }
+    public Animal getTrackedAnimal(){
+        return this.trackedAnimal;
     }
 
     public String toString(){return super.toString();}
@@ -192,7 +198,7 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
                     }
                     if(A.get(i).equals(trackedAnimal)){
                         trackedInfo[2] = days;
-                        trackedInfo[3] = A.get(i).getAge();
+//                        trackedInfo[3] = A.get(i).getAge();
                     }
                     this.deadA+=1;
                     this.sumAge+=A.get(i).getAge();
