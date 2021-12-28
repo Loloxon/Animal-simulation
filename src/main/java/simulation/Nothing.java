@@ -5,5 +5,4 @@ public class Nothing implements IMapElement{
     public Vector2d getPosition() {
         return null;
     }
-
 }

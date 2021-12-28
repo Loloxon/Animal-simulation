@@ -34,18 +34,18 @@ public class App extends Application implements IPositionChangeObserver {
     private int fieldSize;
     private int chartValueNo;
     private int delay;
-    AbstractWorldMap map1;
-    SimulationEngine engine1;
-    AbstractWorldMap map2;
-    SimulationEngine engine2;
+    private AbstractWorldMap map1;
+    private SimulationEngine engine1;
+    private AbstractWorldMap map2;
+    private SimulationEngine engine2;
     private static final DecimalFormat df = new DecimalFormat("0.00");
 
     private final HashMap<MapDirection, Image> imageAnimals = new HashMap<>();
     private Image imageGrass;
     private Image imageNothing;
 
-    private ArrayList<XYChart.Series> allChartSeries1 = new ArrayList<>();
-    private ArrayList<XYChart.Series> allChartSeries2 = new ArrayList<>();
+    private final ArrayList<XYChart.Series> allChartSeries1 = new ArrayList<>();
+    private final ArrayList<XYChart.Series> allChartSeries2 = new ArrayList<>();
     private final GridPane grid1 = new GridPane();
     private final GridPane grid2 = new GridPane();
     private final GridPane trackingGrid1 = new GridPane();
@@ -76,12 +76,11 @@ public class App extends Application implements IPositionChangeObserver {
         for(String s:genotypesToCheck){
             if(!Count.containsKey(s)) {
                 x = 1;
-                Count.put(s, x);
             }
             else {
                 x = Count.get(s) + 1;
-                Count.put(s, x);
             }
+            Count.put(s, x);
             if(max<x){
                 max = x;
                 S = s;
@@ -137,13 +136,10 @@ public class App extends Application implements IPositionChangeObserver {
         Object object = map.objectAt(position);
         if(object instanceof Animal a) {
                matrix[x][y].update(imageAnimals.get(a.getDirection()), a.getEnergy());
-            matrix[x][y].view.setOnMouseClicked(new EventHandler<MouseEvent>() {
-                @Override
-                public void handle(MouseEvent event) {
-                    if(!engine.getRunning()) {
-                        map.setTrackedAnimal(a);
-                        updateTracking(map,trackingGrid);
-                    }
+            matrix[x][y].view.setOnMouseClicked(event -> {
+                if (!engine.getRunning()) {
+                    map.setTrackedAnimal(a);
+                    updateTracking(map, trackingGrid);
                 }
             });
         }
@@ -294,7 +290,7 @@ public class App extends Application implements IPositionChangeObserver {
             allxAxis.add(new NumberAxis());
             allxAxis.get(i).setForceZeroInRange(false);
             allyAxis.add(new NumberAxis());
-            allCharts.add(new LineChart<Number, Number>(allxAxis.get(i), allyAxis.get(i)));
+            allCharts.add(new LineChart<>(allxAxis.get(i), allyAxis.get(i)));
             allCharts.get(i).setCreateSymbols(false);
         }
         for(int i=0;i<2;i++) {
@@ -427,7 +423,7 @@ public class App extends Application implements IPositionChangeObserver {
         second.getChildren().add(createCharts(chartsOrder, allChartSeries2));
         maps.getChildren().add(second);
 
-        Scene scene = new Scene(maps, 1500, 800);
+        Scene scene = new Scene(maps, 1500, 900);
         primaryStage.setScene(scene);
         primaryStage.show();
         engineThread1.start();
@@ -449,9 +445,7 @@ public class App extends Application implements IPositionChangeObserver {
         CopyOnWriteArrayList<Animal> A = map.getA();
         for(Animal a:A){
             if(a.getStringGens().equals(genotype)){
-                Platform.runLater(() -> {
-                    matrix[a.getPosition().x][a.getPosition().y].update(imageAnimals.get(a.getDirection()), -2);
-                });
+                Platform.runLater(() -> matrix[a.getPosition().x][a.getPosition().y].update(imageAnimals.get(a.getDirection()), -2));
             }
         }
     }

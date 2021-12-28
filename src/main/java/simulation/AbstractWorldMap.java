@@ -4,36 +4,29 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 abstract public class AbstractWorldMap implements IPositionChangeObserver {
-    protected Map<Vector2d, Animal> animals = new HashMap<>();
     protected Map<Vector2d, Grass> grasses = new HashMap<>();
     protected CopyOnWriteArrayList<Animal> A = new CopyOnWriteArrayList<>();
     protected CopyOnWriteArrayList<Grass> G = new CopyOnWriteArrayList<>();
     protected ArrayList<Vector2d> noGrassJungle = new ArrayList<>();
     protected ArrayList<Vector2d> noGrassStep = new ArrayList<>();
-    int width;
-    int height;
-    int startEnergy;
-    int moveEnergy;
-    int plantEnergy;
-    int jungleRatio;
-    int maxID;
-    float deadA;
-    float sumAge;
-    int magicUses;
-    int whichMap;
-    int days;
-    //    public boolean magicHappened;
-    double[] noGens = new double[8];
-    CopyOnWriteArrayList<String> genotypes = new CopyOnWriteArrayList<>();
+    private final CopyOnWriteArrayList<String> genotypes = new CopyOnWriteArrayList<>();
+    protected int width;
+    protected int height;
+    private final int startEnergy;
+    protected int moveEnergy;
+    private final int plantEnergy;
+    private float deadA;
+    private float sumAge;
+    private int magicUses;
+    private int days;
     public Vector2d jungleLL;
     public Vector2d jungleUR;
-    IPositionChangeObserver observer;
+    private IPositionChangeObserver observer;
 
-    Animal trackedAnimal;
+    private Animal trackedAnimal;
     int[] trackedInfo = new int[4];//children, offsprings, when died, age
 
-    public AbstractWorldMap(int width, int height, int startEnergy, int moveEnergy, int plantEnergy, int jungleRatio, int magicUses, int whichMap){
-        this.maxID = 0;
+    public AbstractWorldMap(int width, int height, int startEnergy, int moveEnergy, int plantEnergy, int jungleRatio, int magicUses){
         this.deadA = 0;
         this.sumAge = 0;
         this.width = width;
@@ -41,9 +34,7 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
         this.startEnergy = startEnergy;
         this.moveEnergy = moveEnergy;
         this.plantEnergy = plantEnergy;
-        this.jungleRatio = jungleRatio;
         this.magicUses = magicUses;
-        this.whichMap = whichMap;
         this.days = 0;
         jungleLL = new Vector2d((int) Math.floor((10-Math.sqrt(jungleRatio))*width/20),(int) Math.floor((10-Math.sqrt(jungleRatio))*height/20));
         jungleUR = new Vector2d((int) Math.floor((10+Math.sqrt(jungleRatio))*width/20)-1,(int) Math.floor((10+Math.sqrt(jungleRatio))*height/20)-1);
@@ -55,8 +46,6 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
                 else
                     this.noGrassStep.add(pos);
             }
-        for(int i=0;i<8;i++)
-            noGens[i]=0;
     }
 
     public CopyOnWriteArrayList<Animal> getA(){
@@ -65,10 +54,6 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
     public CopyOnWriteArrayList<Grass> getG(){
         return G;
     }
-    public Map<Vector2d, Animal> getAnimals(){
-        return animals;
-    }
-    public Map<Vector2d, Grass> getGrasses(){return grasses;}
     public void nextDay(){
         this.days+=1;
         if(trackedInfo[2]==-1)
@@ -107,35 +92,35 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
     }
 
     public ArrayList<Animal> getStrongest(Vector2d v, boolean if2nd){
-        ArrayList<Animal> animals1 = new ArrayList<>();
-        ArrayList<Animal> animals2 = new ArrayList<>();
+        ArrayList<Animal> animals = new ArrayList<>();
+        ArrayList<Animal> animalsFinal = new ArrayList<>();
         for(Animal a:A){
             if(a.getPosition().equals(v))
-                animals1.add(a);
+                animals.add(a);
         }
-        if(animals1.size()>0) {
-            int firstE = animals1.get(0).getEnergy();
+        if(animals.size()>0) {
+            int firstE = animals.get(0).getEnergy();
             int secondE = -1;
-            if(animals1.size()>1)
-                secondE = animals1.get(0).getEnergy();
-            for (Animal a : animals1) {
+            if(animals.size()>1)
+                secondE = animals.get(0).getEnergy();
+            for (Animal a : animals) {
                 if (a.getEnergy() >= firstE)
                     firstE = a.getEnergy();
                 else if (a.getEnergy() > secondE)
                     secondE = a.getEnergy();
             }
-            for (Animal a : animals1) {
+            for (Animal a : animals) {
                 if (a.getEnergy() == firstE)
-                    animals2.add(a);
+                    animalsFinal.add(a);
             }
             if (if2nd) {
-                for (Animal a : animals1) {
+                for (Animal a : animals) {
                     if (a.getEnergy() == secondE)
-                        animals2.add(a);
+                        animalsFinal.add(a);
                 }
             }
         }
-        return animals2;
+        return animalsFinal;
     }
 
     void newGrassInArea(ArrayList<Vector2d> noGrass){
@@ -186,9 +171,6 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
                 if (A.get(i).getEnergy() <= 0) {
                     ArrayList<Integer> deadGens;
                     deadGens = A.get(i).getGens();
-                    for(int k=0;k<8;k++){
-                        noGens[k]-=deadGens.get(k);
-                    }
                     StringBuilder S = new StringBuilder();
                     for(int k=0;k<32;k++){
                         S.append(deadGens.get(k));
@@ -201,15 +183,12 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
                     }
                     if(A.get(i).equals(trackedAnimal)){
                         trackedInfo[2] = days;
-//                        trackedInfo[3] = A.get(i).getAge();
                     }
                     this.deadA+=1;
                     this.sumAge+=A.get(i).getAge();
                     observer.positionChanged(A.get(i).getPosition(),A.get(i).getPosition(), this);
                     A.remove(i);
                     flag = true;
-                    if(magicUses>0)
-                        checkMagic();
                     break;
                 }
             }
@@ -222,7 +201,7 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
             places.add(P);
             for (int i = 1; i < A.size(); i++) {
                 for (int j=0;j<places.size();j++){
-                    if(places.get(j).p1.equals(A.get(i).getPosition())){
+                    if(places.get(j).first.equals(A.get(i).getPosition())){
                         break;
                     }
                     if(j == places.size()-1){
@@ -232,24 +211,23 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
                 }
             }
             for (Pair<Vector2d, Integer> p : places) {
-                if(grasses.containsKey(p.p1)){
-//                    int saturate = this.plantEnergy / p.p2;
-                    List<Animal> animals = getStrongest(p.p1,false);
+                if(grasses.containsKey(p.first)){
+                    List<Animal> animals = getStrongest(p.first,false);
                     int saturate = this.plantEnergy / animals.size();
                     for (Animal a : animals) {
                         a.feed(saturate);
                     }
-                    if (p.p1.precedes(jungleUR) && p.p1.follows(jungleLL))
-                        noGrassJungle.add(p.p1);
+                    if (p.first.precedes(jungleUR) && p.first.follows(jungleLL))
+                        noGrassJungle.add(p.first);
                     else
-                        noGrassStep.add(p.p1);
+                        noGrassStep.add(p.first);
                     for(int i=0;i<G.size();i++){
-                        if(G.get(i).getPosition().equals(p.p1)) {
+                        if(G.get(i).getPosition().equals(p.first)) {
                             G.remove(i);
                             break;
                         }
                     }
-                    grasses.remove(p.p1);
+                    grasses.remove(p.first);
                 }
             }
         }
@@ -269,12 +247,10 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
                         if (animals1.get(0).equals(trackedAnimal) || animals1.get(1).equals(trackedAnimal)) {
                             trackedInfo[0] += 1;
                         }
-                        place(animals1.get(0).copulate(animals1.get(1), maxID + 1, true), false);
+                        place(animals1.get(0).copulate(animals1.get(1), true), false);
                     }
                     else
-                       place(animals1.get(0).copulate(animals1.get(1), maxID + 1, false), false);
-                    if(magicUses>0)
-                        checkMagic();
+                       place(animals1.get(0).copulate(animals1.get(1), false), false);
                 }
             }
         }
@@ -308,7 +284,7 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
                 pos.add(new Vector2d(x%width, x/width));
             }
             for(int i=0;i<5;i++){
-                this.place(new Animal(this, pos.get(i), A.get(i).getGens(), this.startEnergy, this.maxID+1, false), false);
+                this.place(new Animal(this, pos.get(i), A.get(i).getGens(), this.startEnergy, false), false);
             }
             magicUses-=1;
             observer.magicHappened(3-magicUses, this);
@@ -329,13 +305,8 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
     }
 
     public void place(Animal animal, boolean beginning) {
-        maxID +=1;
-        int[] newParsedGens = animal.parseGens();
         ArrayList<Integer> newGens = animal.getGens();
         StringBuilder S = new StringBuilder();
-        for(int i=0;i<8;i++) {
-            this.noGens[i] += newParsedGens[i];
-        }
         for(int i=0;i<32;i++){
             S.append(newGens.get(i));
         }
@@ -351,7 +322,7 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
                 break;
             }
         }
-        animals.put(pos, animal);
+//        animals.put(pos, animal);
         A.add(animal);
         animal.addObserver(this);
         if(!beginning)

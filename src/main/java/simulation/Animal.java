@@ -9,19 +9,17 @@ public class Animal implements IMapElement {
     private MapDirection direction;
     private Vector2d position;
     private final ArrayList<Integer> gens;
-    private final int ID;
     private int age = 0;
     private int energy;
     private int children;
     private IPositionChangeObserver observer;
     private boolean tracked;
 
-    public Animal(AbstractWorldMap map, Vector2d initialPosition, ArrayList<Integer> gens, int energy, int ID, boolean tracked){
+    public Animal(AbstractWorldMap map, Vector2d initialPosition, ArrayList<Integer> gens, int energy, boolean tracked){
         this.map = map;
         this.position = initialPosition;
         this.gens = gens;
         this.energy = energy;
-        this.ID = ID;
         this.children = 0;
         this.tracked = tracked;
         Random rand = new Random();
@@ -44,7 +42,6 @@ public class Animal implements IMapElement {
         return S.toString();
     }
     public int getAge(){return age;}
-    //    public int getStartEnergy(){return map.startEnergy;}
     public int getEnergy(){return energy;}
     public void setEnergy(int energy){this.energy = energy;}
     public boolean getTracked(){return this.tracked;}
@@ -52,15 +49,8 @@ public class Animal implements IMapElement {
     public void feed(int food){
         this.energy += food;
     }
-    public int getChildren(){return children;}          //ilosc dzieci
+    public int getChildren(){return children;}
     public void makeChildren(){this.children+=1;}       //zwiekszenie ilosci dzieci
-    public int[] parseGens(){       //zliczenie krotnosci kazdego z genóœ
-        int[] noGens = new int[8];
-        for(Integer g:gens){
-            noGens[g]+=1;
-        }
-        return noGens;
-    }
     public String toString(){
         return switch (this.direction) {
             case NORTH -> "N";
@@ -101,7 +91,7 @@ public class Animal implements IMapElement {
         observer.positionChanged(oldPosition, this.position, this.map);
     }
 
-    public Animal copulate(Animal ani2, int newID, boolean tracked){ //obecne zwierze + argument = nowe zwracane zwierze
+    public Animal copulate(Animal ani2, boolean tracked){ //obecne zwierze + argument = nowe zwracane zwierze
         int energy = ani2.getEnergy();
         ArrayList<Integer> gens = ani2.getGens();
         Random rand = new Random();
@@ -126,9 +116,9 @@ public class Animal implements IMapElement {
         int newEnergy = this.energy/4 + energy/4;
         this.energy = this.energy*3/4;              //zmiejszenie energii
         ani2.setEnergy(energy*3/4);
-        this.children+=1;                           //dodanie dzieci
+        this.makeChildren();                           //dodanie dzieci
         ani2.makeChildren();
-        return new Animal(this.map, this.position, newGens, newEnergy, newID, tracked);
+        return new Animal(this.map, this.position, newGens, newEnergy, tracked);
     }
     public void addObserver(IPositionChangeObserver observer){this.observer=observer;}
 }

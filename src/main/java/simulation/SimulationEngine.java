@@ -3,45 +3,26 @@ package simulation;
 import java.util.*;
 
 public class SimulationEngine implements Runnable, IPositionChangeObserver {
-    List<Animal> A;
-    List<Grass> G;
-    Map<Vector2d, Animal> animals;
-    Map<Vector2d, Grass> grasses;
-    AbstractWorldMap map;
-    int startEnergy;
-    int animalNO;
-    boolean running;
-    IPositionChangeObserver observer;
-    int delay;
-    int chartValueNo;
+    private List<Animal> A;
+    private final AbstractWorldMap map;
+    private final int startEnergy;
+    private final int startingAnimalsNo;
+    private boolean running;
+    private IPositionChangeObserver observer;
+    private final int delay;
+    private final int chartValueNo;
 
-    ArrayList<ArrayList<Double>> chartsInfo = new ArrayList<>();
-    Double[] chartsSummarize;
-    ArrayList<String> chartsOrder = new ArrayList<>();
+    private ArrayList<ArrayList<Double>> chartsInfo = new ArrayList<>();
+    private Double[] chartsSummarize;
+    private ArrayList<String> chartsOrder = new ArrayList<>();
 
-    int[] trackedInfo = new int[3];
-
-//    public List<Animal> getA() {
-//        return A;
-//    }
-//    public List<Grass> getG() {
-//        return G;
-//    }
-//    public Map<Vector2d, Animal> getAnimals(){
-//        return animals;
-//    }
-//    public Map<Vector2d, Grass> getGrasses(){return grasses;}
-
-    public SimulationEngine(AbstractWorldMap map, int animalNO, int startEnergy, int chartValueNo, int delay) {
+    public SimulationEngine(AbstractWorldMap map, int startingAnimalsNo, int startEnergy, int chartValueNo, int delay) {
         this.map = map;
         this.map.setObserver(this);
-        this.animalNO = animalNO;
+        this.startingAnimalsNo = startingAnimalsNo;
         this.startEnergy = startEnergy;
         addAnimals();
         this.A = map.getA();
-        this.G = map.getG();
-        this.animals = map.getAnimals();
-        this.grasses = map.getGrasses();
         this.running = true;
         this.delay = delay;
         this.chartValueNo = chartValueNo;
@@ -49,8 +30,6 @@ public class SimulationEngine implements Runnable, IPositionChangeObserver {
 
     public void setChartsInfo(ArrayList<String> chartsOrder){
         this.chartsOrder = chartsOrder;
-//        chartsInfo = new ArrayList[chartsOrder.size()];
-//        ArrayList<Double>[] chartsInfo = new ArrayList[];
         chartsSummarize = new Double[chartsOrder.size()];
         for(int k=0;k<chartsOrder.size();k++) {
             chartsSummarize[k] = 0.0;
@@ -75,7 +54,7 @@ public class SimulationEngine implements Runnable, IPositionChangeObserver {
     public void setObserver(IPositionChangeObserver observer){this.observer = observer;}
 
     public void addAnimals() {
-        Vector2d[] positions = new Vector2d[animalNO];
+        Vector2d[] positions = new Vector2d[startingAnimalsNo];
         int width = map.width;
         int height = map.height;
         ArrayList<ArrayList<Integer>> gens = new ArrayList<>();
@@ -85,7 +64,7 @@ public class SimulationEngine implements Runnable, IPositionChangeObserver {
                 freePositions.add(j*width+i);
             }
         }
-        for (int j = 0; j < animalNO; j++) {
+        for (int j = 0; j < startingAnimalsNo; j++) {
             Random rand = new Random();
             ArrayList<Integer> gensi = new ArrayList<>();
             for (int i = 0; i < 32; i++) {
@@ -99,10 +78,9 @@ public class SimulationEngine implements Runnable, IPositionChangeObserver {
             int x = freePositions.get(id);
             freePositions.remove(id);
             positions[j] = new Vector2d(x%width, x/width);
-//            positions[j] = new Vector2d(rand.nextInt(width), rand.nextInt(height));
         }
-        for (int i = 0; i < animalNO; i++) {
-            map.place(new Animal(map, positions[i], gens.get(i), startEnergy, i+1, false), true);
+        for (int i = 0; i < startingAnimalsNo; i++) {
+            map.place(new Animal(map, positions[i], gens.get(i), startEnergy, false), true);
         }
     }
 
@@ -139,8 +117,6 @@ public class SimulationEngine implements Runnable, IPositionChangeObserver {
             while(true){
                 if(running){
                     A = map.getA();
-                    G = map.getG();
-                    grasses = map.getGrasses();
                     map.remove();       //        removeDead();
                     for (Animal a : A) {    //        move();
                         a.move();
