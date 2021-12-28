@@ -1,6 +1,7 @@
 package simulation;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class SimulationEngine implements Runnable, IPositionChangeObserver {
     private List<Animal> A;
@@ -87,7 +88,8 @@ public class SimulationEngine implements Runnable, IPositionChangeObserver {
     void refreshData(){
         double e=0;
         double c=0;
-        for(Animal a:map.getA()) {
+        CopyOnWriteArrayList<Animal> animals = map.getA();
+        for(Animal a:animals) {
             e += a.getEnergy();
             c += a.getChildren();
         }
@@ -96,8 +98,8 @@ public class SimulationEngine implements Runnable, IPositionChangeObserver {
             c /= A.size();
         }
         else{
-            e = chartsInfo.get(2).get(chartsInfo.get(2).size()-1);
-            c = chartsInfo.get(4).get(chartsInfo.get(4).size()-1);
+            e = 0;
+            c = 0;
         }
         for(int i=0;i<chartsOrder.size();i++){
             switch (chartsOrder.get(i)) {
@@ -118,7 +120,7 @@ public class SimulationEngine implements Runnable, IPositionChangeObserver {
                 if(running){
                     A = map.getA();
                     map.remove();       //        removeDead();
-                    for (Animal a : A) {    //        move();
+                    for (Animal a : A){ //        move();
                         a.move();
                     }
                     map.eat();          //        eating();
@@ -130,8 +132,10 @@ public class SimulationEngine implements Runnable, IPositionChangeObserver {
                     map.nextDay();
                     refreshData();
                     observer.dayEnded(this, this.map);
+                    Thread.sleep(delay);
                 }
-                Thread.sleep(delay);
+                else
+                    Thread.sleep(5);
             }
         }catch (InterruptedException ex){
             ex.printStackTrace();
