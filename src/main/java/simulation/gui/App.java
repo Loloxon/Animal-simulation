@@ -24,7 +24,7 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class App extends Application implements IPositionChangeObserver {
-    private int animalNO;
+    private int startingAnimalsNo;
     private int width;
     private int height;
     private int startEnergy;
@@ -152,8 +152,8 @@ public class App extends Application implements IPositionChangeObserver {
         else
             matrix[x][y].update(imageNothing, -1);
     }
-    @Override
-    public void start(Stage primaryStage){
+
+    void loadResources(){
         MapDirection[] directions = new MapDirection[8];
         for(int i=0;i<8;i++) {
             directions[i] = MapDirection.NORTH;
@@ -163,14 +163,13 @@ public class App extends Application implements IPositionChangeObserver {
         }
         imageGrass = new Image("file:src/main/resources/grass.png");
         imageNothing = new Image("file:src/main/resources/nothing.png");
+    }
 
-        primaryStage.setTitle("Starting screen");
-        VBox root = new VBox();
+    VBox prepareInitScene(CheckBox checkBox1, CheckBox checkBox2, ArrayList<TextField> textFields, Button startButton){
         VBox vbox = new VBox();
         Label scenetitle = new Label("Enter initial data"); //animals no, width, height, startEnergy, moveEnergy, plantEnergy, jungleRatio
         scenetitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 25));
         vbox.getChildren().add(scenetitle);
-        root.getChildren().add(vbox);
 
         ArrayList<String> labels = new ArrayList<>(){
             {
@@ -185,19 +184,15 @@ public class App extends Application implements IPositionChangeObserver {
                 add("Delay between moves [ms]: ");
             }
         };
-        ArrayList<TextField> textFields = new ArrayList<>(){
-            {
-                add(new TextField("20"));
-                add(new TextField("20"));
-                add(new TextField("10"));
-                add(new TextField("50"));
-                add(new TextField("3"));
-                add(new TextField("100"));
-                add(new TextField("36"));
-                add(new TextField("100"));
-                add(new TextField("50"));
-            }
-        };
+        textFields.add(new TextField("20"));
+        textFields.add(new TextField("20"));
+        textFields.add(new TextField("10"));
+        textFields.add(new TextField("50"));
+        textFields.add(new TextField("3"));
+        textFields.add(new TextField("100"));
+        textFields.add(new TextField("36"));
+        textFields.add(new TextField("100"));
+        textFields.add(new TextField("50"));
 
         ArrayList<HBox> hboxes = new ArrayList<>(){
             {
@@ -213,28 +208,41 @@ public class App extends Application implements IPositionChangeObserver {
             hboxes.get(i).setAlignment(Pos.CENTER);
         }
 
-        CheckBox checkBox1 = new CheckBox("If first map ('folded') is magic");
         vbox.getChildren().add(checkBox1);
-        CheckBox checkBox2 = new CheckBox("If second map ('with edges') is magic");
         vbox.getChildren().add(checkBox2);
 
-        Button S = new Button("Start");
-        S.setDefaultButton(true);
-        vbox.getChildren().add(S);
+        startButton.setDefaultButton(true);
+        vbox.getChildren().add(startButton);
 
         vbox.setSpacing(20);
         VBox.setMargin(vbox, new Insets(25, 25, 25, 25));
+        return vbox;
+    }
+    
+    @Override
+    public void start(Stage primaryStage){
+        loadResources();
+
+        VBox root = new VBox();
+        primaryStage.setTitle("Starting screen");
+
+        ArrayList<TextField> textFields = new ArrayList<>();
+        CheckBox checkBox1 = new CheckBox("If first map ('folded') is magic");
+        CheckBox checkBox2 = new CheckBox("If second map ('with edges') is magic");
+        Button startButton = new Button("Start");
+        root.getChildren().add(prepareInitScene(checkBox1, checkBox2, textFields, startButton));
+
         Scene scene = new Scene(root, 550, 600);
 
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        S.setOnAction(e -> {
+        startButton.setOnAction(e -> {
             ArrayList<Integer> values = new ArrayList<>();
             for(TextField t:textFields){
                 values.add(Integer.parseInt(t.getText()));
             }
-            this.animalNO = values.get(0);
+            this.startingAnimalsNo = values.get(0);
             this.width = values.get(1);
             this.height = values.get(2);
             this.startEnergy = values.get(3);
@@ -252,7 +260,7 @@ public class App extends Application implements IPositionChangeObserver {
             else
                 magicUses = 0;
             map1 = new NoEdgedMap(this.width, this.height, this.startEnergy, this.moveEnergy, this.plantEnergy, this.jungleRatio, magicUses);
-            engine1 = new SimulationEngine(map1, this.animalNO, this.startEnergy, this.chartValueNo, this.delay);
+            engine1 = new SimulationEngine(map1, this.startingAnimalsNo, this.startEnergy, this.chartValueNo, this.delay);
             engine1.setObserver(this);
 
             boolean magic2 = checkBox2.isSelected();
@@ -261,7 +269,7 @@ public class App extends Application implements IPositionChangeObserver {
             else
                 magicUses = 0;
             map2 = new EdgedMap(this.width, this.height, this.startEnergy, this.moveEnergy, this.plantEnergy, this.jungleRatio, magicUses);
-            engine2 = new SimulationEngine(map2, this.animalNO, this.startEnergy, this.chartValueNo, this.delay);
+            engine2 = new SimulationEngine(map2, this.startingAnimalsNo, this.startEnergy, this.chartValueNo, this.delay);
             engine2.setObserver(this);
 
             grid1.setAlignment(Pos.CENTER);
