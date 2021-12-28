@@ -173,8 +173,12 @@ public class App extends Application implements IPositionChangeObserver {
                 }
             });
         }
-        else if(object instanceof Grass)
-            matrix[x][y].update(imageGrass, -1);
+        else if(object instanceof Grass g) {
+            if(g.getPosition().follows(map.jungleLL) && g.getPosition().precedes(map.jungleUR))
+                matrix[x][y].update(imageGrass, -3);
+            else
+                matrix[x][y].update(imageGrass, -1);
+        }
         else
             matrix[x][y].update(imageNothing, -1);
     }
@@ -414,6 +418,7 @@ public class App extends Application implements IPositionChangeObserver {
     void simulate(Stage primaryStage){
         primaryStage.setTitle("World");
         Button exit = new Button("Exit");
+        exit.setMinSize(60,30);
         HBox maps = new HBox();
         maps.setAlignment(Pos.CENTER);
 

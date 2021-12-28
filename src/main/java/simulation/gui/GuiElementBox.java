@@ -21,9 +21,8 @@ public class GuiElementBox extends Application {
         view.setFitWidth(S);
         ColorAdjust colorAdjust = new ColorAdjust();
         if(energy > -1){
-//            ToggleButton animalButton = new ToggleButton();
-//            animalButton.
-            colorAdjust.setBrightness(Math.max((startEnergy - energy - 15) / (startEnergy),-0.5));
+            colorAdjust.setBrightness(Math.max((startEnergy*(0.95) - energy) / (startEnergy),-0.5));
+
         }
         view.setEffect(colorAdjust);
     }
@@ -32,10 +31,16 @@ public class GuiElementBox extends Application {
         view.setImage(image);
         ColorAdjust colorAdjust = new ColorAdjust();
         if(energy > -1){
-            colorAdjust.setBrightness(Math.max((startEnergy - energy - 15) / (startEnergy),-0.5));
+            colorAdjust.setBrightness(Math.max((startEnergy*(0.95) - energy) / (startEnergy),-0.5));
+        }
+        if(energy == -1){
+            colorAdjust.setBrightness(0.25);
         }
         if(energy == -2){
             colorAdjust.setBrightness(-1);
+        }
+        if(energy == -3){
+            colorAdjust.setBrightness(-0.25);
         }
         view.setEffect(colorAdjust);
     }

@@ -8,8 +8,8 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
     protected Map<Vector2d, Grass> grasses = new HashMap<>();
     protected CopyOnWriteArrayList<Animal> A = new CopyOnWriteArrayList<>();
     protected CopyOnWriteArrayList<Grass> G = new CopyOnWriteArrayList<>();
-    protected List<Vector2d> noGrassJungle = new ArrayList<>();
-    protected List<Vector2d> noGrassStep = new ArrayList<>();
+    protected ArrayList<Vector2d> noGrassJungle = new ArrayList<>();
+    protected ArrayList<Vector2d> noGrassStep = new ArrayList<>();
     int width;
     int height;
     int startEnergy;
@@ -25,8 +25,8 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
     //    public boolean magicHappened;
     double[] noGens = new double[8];
     CopyOnWriteArrayList<String> genotypes = new CopyOnWriteArrayList<>();
-    Vector2d jungleLL;
-    Vector2d jungleUR;
+    public Vector2d jungleLL;
+    public Vector2d jungleUR;
     IPositionChangeObserver observer;
 
     Animal trackedAnimal;
@@ -72,7 +72,10 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
     public Map<Vector2d, Grass> getGrasses(){return grasses;}
     public void nextDay(){
         this.days+=1;
-        trackedInfo[3]+=1;
+        if(trackedInfo[2]==-1)
+            trackedInfo[3]+=1;
+        if(magicUses>0)
+            checkMagic();
     }
     public int getDays(){return days;}
     public void setTrackedAnimal(Animal a){
@@ -136,44 +139,44 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
         return animals2;
     }
 
-    public void newGrass(){
+    void newGrassInArea(ArrayList<Vector2d> noGrass){
+        ArrayList<Vector2d> trueNoGrass = new ArrayList<>(noGrass);
+        for(int i=trueNoGrass.size()-1;i>=0;i--){
+            for(Animal a:A){
+                if(a.getPosition().equals(trueNoGrass.get(i))){
+                    trueNoGrass.remove(i);
+                    break;
+                }
+            }
+        }
         Random rand = new Random();
-        if(noGrassJungle.size()>0) {
-            int x = rand.nextInt(noGrassJungle.size());
+        if(trueNoGrass.size()>0) {
+            int x = rand.nextInt(trueNoGrass.size());
             boolean flag = true;
-            for(Animal a:A){
-                if (a.getPosition().equals(noGrassJungle.get(x))) {
-                    flag = false;
-                    break;
+            while(flag) {
+                flag = false;
+                for (Animal a : A) {
+                    if (a.getPosition().equals(trueNoGrass.get(x))) {
+                        flag = false;
+                        break;
+                    }
                 }
             }
-            if(flag) {
-                Grass g1 = new Grass(noGrassJungle.get(x));
-                G.add(g1);
-                observer.positionChanged(g1.getPosition(), g1.getPosition(), this);
-                grasses.put(noGrassJungle.get(x), g1);
-                noGrassJungle.remove(x);
-            }
-        }
-        if(noGrassStep.size()>0) {
-            int x = rand.nextInt(noGrassStep.size());
-            boolean flag = true;
-            for(Animal a:A){
-                if (a.getPosition().equals(noGrassStep.get(x))) {
-                    flag = false;
+            Grass g1 = new Grass(trueNoGrass.get(x));
+            G.add(g1);
+            observer.positionChanged(g1.getPosition(), g1.getPosition(), this);
+            grasses.put(trueNoGrass.get(x), g1);
+            for(int i=0;i<noGrass.size();i++)
+                if(noGrass.get(i).equals(trueNoGrass.get(x))) {
+                    noGrass.remove(i);
                     break;
                 }
-            }
-            if(flag) {
-                Grass g2 = new Grass(noGrassStep.get(x));
-                G.add(g2);
-                observer.positionChanged(g2.getPosition(), g2.getPosition(), this);
-                grasses.put(noGrassStep.get(x), g2);
-                noGrassStep.remove(x);
-            }
         }
-        if(magicUses>0)
-            checkMagic();
+    }
+
+    public void newGrass(){
+        newGrassInArea(noGrassJungle);
+        newGrassInArea(noGrassStep);
     }
     public void remove(){
         boolean flag = true;
@@ -205,6 +208,8 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
                     observer.positionChanged(A.get(i).getPosition(),A.get(i).getPosition(), this);
                     A.remove(i);
                     flag = true;
+                    if(magicUses>0)
+                        checkMagic();
                     break;
                 }
             }
@@ -266,7 +271,10 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
                         }
                         place(animals1.get(0).copulate(animals1.get(1), maxID + 1, true), false);
                     }
-                    place(animals1.get(0).copulate(animals1.get(1), maxID + 1, false), false);
+                    else
+                       place(animals1.get(0).copulate(animals1.get(1), maxID + 1, false), false);
+                    if(magicUses>0)
+                        checkMagic();
                 }
             }
         }
@@ -277,8 +285,6 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
             ArrayList<Vector2d> pos = new ArrayList<>();
             Random rand = new Random();
             int x;
-//            int y;
-//            Vector2d newPos = new Vector2d(0,0);
             ArrayList<Integer> freePositions = new ArrayList<>();
             for(int j=0;j<height;j++){
                 for(int i=0;i<width;i++){
@@ -301,28 +307,6 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
                 freePositions.remove(id);
                 pos.add(new Vector2d(x%width, x/width));
             }
-//            for(int i=0;i<5;i++) {
-//                boolean found = false;
-//                while(!found) {
-//                    x = rand.nextInt(width);
-//                    y = rand.nextInt(height);
-//                    newPos = new Vector2d(x,y);
-//                    found = true;
-//                    for (Animal a : A) {
-//                        if (a.getPosition().equals(newPos)) {
-//                            found = false;
-//                            break;
-//                        }
-//                    }
-//                    for (Vector2d v : pos) {
-//                        if (v.equals(newPos)) {
-//                            found = false;
-//                            break;
-//                        }
-//                    }
-//                }
-//                pos.add(newPos);
-//            }
             for(int i=0;i<5;i++){
                 this.place(new Animal(this, pos.get(i), A.get(i).getGens(), this.startEnergy, this.maxID+1, false), false);
             }
