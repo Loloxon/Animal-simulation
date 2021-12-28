@@ -45,9 +45,8 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
         this.magicUses = magicUses;
         this.whichMap = whichMap;
         this.days = 0;
-//        this.magicHappened = false;
-        jungleLL = new Vector2d((width-1)*(100-jungleRatio)/200,(height-1)*(100-jungleRatio)/200);
-        jungleUR = new Vector2d((width-1)*(100+jungleRatio)/200,(height-1)*(100+jungleRatio)/200);
+        jungleLL = new Vector2d((int) Math.floor((10-Math.sqrt(jungleRatio))*width/20),(int) Math.floor((10-Math.sqrt(jungleRatio))*height/20));
+        jungleUR = new Vector2d((int) Math.floor((10+Math.sqrt(jungleRatio))*width/20)-1,(int) Math.floor((10+Math.sqrt(jungleRatio))*height/20)-1);
         for(int j=0;j<height;j++)
             for(int i=0;i<width;i++) {
                 Vector2d pos = new Vector2d(i, j);
@@ -151,13 +150,14 @@ abstract public class AbstractWorldMap implements IPositionChangeObserver {
         }
         Random rand = new Random();
         if(trueNoGrass.size()>0) {
-            int x = rand.nextInt(trueNoGrass.size());
+            int x = 0;
             boolean flag = true;
             while(flag) {
+                x = rand.nextInt(trueNoGrass.size());
                 flag = false;
                 for (Animal a : A) {
                     if (a.getPosition().equals(trueNoGrass.get(x))) {
-                        flag = false;
+                        flag = true;
                         break;
                     }
                 }

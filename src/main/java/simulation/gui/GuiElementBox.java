@@ -20,9 +20,11 @@ public class GuiElementBox extends Application {
         view.setFitHeight(S);
         view.setFitWidth(S);
         ColorAdjust colorAdjust = new ColorAdjust();
-        if(energy > -1){
-            colorAdjust.setBrightness(Math.max((startEnergy*(0.95) - energy) / (startEnergy),-0.5));
-
+        switch ((int) energy) {
+            case -1 -> colorAdjust.setBrightness(0.25);
+            case -2 -> colorAdjust.setBrightness(-1);
+            case -3 -> colorAdjust.setBrightness(-0.25);
+            default -> colorAdjust.setBrightness(Math.max((startEnergy * (0.90) - energy) / (startEnergy), -0.7));
         }
         view.setEffect(colorAdjust);
     }
@@ -30,17 +32,11 @@ public class GuiElementBox extends Application {
         this.energy = (int) energy;
         view.setImage(image);
         ColorAdjust colorAdjust = new ColorAdjust();
-        if(energy > -1){
-            colorAdjust.setBrightness(Math.max((startEnergy*(0.95) - energy) / (startEnergy),-0.5));
-        }
-        if(energy == -1){
-            colorAdjust.setBrightness(0.25);
-        }
-        if(energy == -2){
-            colorAdjust.setBrightness(-1);
-        }
-        if(energy == -3){
-            colorAdjust.setBrightness(-0.25);
+        switch ((int) energy) {
+            case -1 -> colorAdjust.setBrightness(0.25);
+            case -2 -> colorAdjust.setBrightness(-1);
+            case -3 -> colorAdjust.setBrightness(-0.25);
+            default -> colorAdjust.setBrightness(Math.max((startEnergy * (0.90) - energy) / (startEnergy), -0.5));
         }
         view.setEffect(colorAdjust);
     }

@@ -123,11 +123,11 @@ public class SimulationEngine implements Runnable, IPositionChangeObserver {
         }
         for(int i=0;i<chartsOrder.size();i++){
             switch (chartsOrder.get(i)) {
-                case "animals" -> chartsInfo.get(i).add((double) A.size());
-                case "grass" -> chartsInfo.get(i).add((double) map.getG().size());
-                case "avgEnergy" -> chartsInfo.get(i).add(e);
-                case "avgAge" -> chartsInfo.get(i).add(map.avgAge());
-                case "avgChildren" -> chartsInfo.get(i).add(c);
+                case "Number of animals" -> chartsInfo.get(i).add((double) A.size());
+                case "Number of grass" -> chartsInfo.get(i).add((double) map.getG().size());
+                case "Average energy of living animals" -> chartsInfo.get(i).add(e);
+                case "Average age of dead animals" -> chartsInfo.get(i).add(map.avgAge());
+                case "Average children no. of living animals" -> chartsInfo.get(i).add(c);
             }
             chartsSummarize[i] += chartsInfo.get(i).get(chartsInfo.get(i).size()-1);
         }

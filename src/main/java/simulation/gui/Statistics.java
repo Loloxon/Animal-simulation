@@ -16,13 +16,12 @@ public class Statistics {
         ArrayList<ArrayList<Double>> data = engine.getChartsInfo();
         ArrayList<String> columns = engine.getChartsOrder();
         if(engineNo == 1)
-            fileCSV = new File("statystyki1.csv");
+            fileCSV = new File("FoldedStatistics.csv");
         else
-            fileCSV = new File("statystyki2.csv");
-//        fileCSV.createNewFile();
+            fileCSV = new File("EdgedStatistics.csv");
         ArrayList<String[]> dataLine = new ArrayList<>();
         String[] S = new String[data.size()+1];
-        S[0] = "Ilość epok";
+        S[0] = "Number of days:";
         for (int k = 0; k < data.size(); k++) {
             S[k+1] = columns.get(k);
         }
