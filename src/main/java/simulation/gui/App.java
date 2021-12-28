@@ -161,7 +161,7 @@ public class App extends Application implements IPositionChangeObserver {
                 directions[i] = directions[i].next();
             imageAnimals.put(directions[i], new Image(directions[i].getImage()));
         }
-        imageGrass = new Image("file:src/main/resources/grass1.png");
+        imageGrass = new Image("file:src/main/resources/grass.png");
         imageNothing = new Image("file:src/main/resources/nothing.png");
 
         primaryStage.setTitle("Starting screen");

@@ -42,14 +42,14 @@ public enum MapDirection {
 
     public String getImage(){
         return switch (this) {
-            case NORTH -> "file:src/main/resources/u1.png";
-            case EAST -> "file:src/main/resources/r1.png";
-            case SOUTH -> "file:src/main/resources/b1.png";
-            case WEST -> "file:src/main/resources/l1.png";
-            case SEAST -> "file:src/main/resources/br1.png";
-            case SWEST -> "file:src/main/resources/bl1.png";
-            case NEAST -> "file:src/main/resources/ur1.png";
-            case NWEST -> "file:src/main/resources/ul1.png";
+            case NORTH -> "file:src/main/resources/n.png";
+            case EAST -> "file:src/main/resources/e.png";
+            case SOUTH -> "file:src/main/resources/s.png";
+            case WEST -> "file:src/main/resources/w.png";
+            case SEAST -> "file:src/main/resources/se.png";
+            case SWEST -> "file:src/main/resources/sw.png";
+            case NEAST -> "file:src/main/resources/ne.png";
+            case NWEST -> "file:src/main/resources/nw.png";
         };
     }
 
