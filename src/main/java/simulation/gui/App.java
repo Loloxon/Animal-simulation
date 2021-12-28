@@ -1,7 +1,5 @@
 package simulation.gui;
 
-import javafx.event.EventHandler;
-import javafx.scene.input.MouseEvent;
 import simulation.*;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -44,8 +42,8 @@ public class App extends Application implements IPositionChangeObserver {
     private Image imageGrass;
     private Image imageNothing;
 
-    private final ArrayList<XYChart.Series> allChartSeries1 = new ArrayList<>();
-    private final ArrayList<XYChart.Series> allChartSeries2 = new ArrayList<>();
+    private final ArrayList<XYChart.Series<Number,Number>> allChartSeries1 = new ArrayList<>();
+    private final ArrayList<XYChart.Series<Number,Number>> allChartSeries2 = new ArrayList<>();
     private final GridPane grid1 = new GridPane();
     private final GridPane grid2 = new GridPane();
     private final GridPane trackingGrid1 = new GridPane();
@@ -54,8 +52,11 @@ public class App extends Application implements IPositionChangeObserver {
     private GuiElementBox[][] matrix1;
     private GuiElementBox[][] matrix2;
 
-    private final Label magic1 = new Label();
-    private final Label magic2 = new Label();
+    private final Label magic1Label = new Label();
+    private final Label magic2Label = new Label();
+    
+    private boolean magic1;
+    private boolean magic2;
 
     private final Label labelGens1 = new Label();
     private final Label labelGens2 = new Label();
@@ -63,7 +64,7 @@ public class App extends Application implements IPositionChangeObserver {
     private String genotype1 = "";
     private String genotype2 = "";
 
-    void stats(SimulationEngine engine, AbstractWorldMap map, Label labelGens, ArrayList<XYChart.Series> allChartSeries){
+    void stats(SimulationEngine engine, AbstractWorldMap map, Label labelGens, ArrayList<XYChart.Series<Number,Number>> allChartSeries){
         ArrayList<String> chartsOrder = engine.getChartsOrder();
         ArrayList<ArrayList<Double>> chartsInfo = engine.getChartsInfo();
 
@@ -97,7 +98,7 @@ public class App extends Application implements IPositionChangeObserver {
             for (int i = 0; i < chartsOrder.size(); i++) {
                 allChartSeries.get(i).getData().clear();
                 for (int k = chartsInfo.get(i).size() - 1; k >= chartsInfo.get(i).size() - chartValueNo; k--) {
-                    allChartSeries.get(i).getData().add(new XYChart.Data((k), chartsInfo.get(i).get(k)));
+                    allChartSeries.get(i).getData().add(new XYChart.Data<>((k), chartsInfo.get(i).get(k)));
                 }
             }
             labelGens.setText(S + "; " + df.format(max * 100 / all) + "%");
@@ -253,7 +254,7 @@ public class App extends Application implements IPositionChangeObserver {
             this.delay = values.get(8);
 
             this.fieldSize = Math.min((1500-50)/(2*this.width+2), (800/2)/(this.height+1));
-            boolean magic1 = checkBox1.isSelected();
+            magic1 = checkBox1.isSelected();
             int magicUses;
             if(magic1)
                 magicUses = 3;
@@ -263,7 +264,7 @@ public class App extends Application implements IPositionChangeObserver {
             engine1 = new SimulationEngine(map1, this.startingAnimalsNo, this.startEnergy, this.chartValueNo, this.delay);
             engine1.setObserver(this);
 
-            boolean magic2 = checkBox2.isSelected();
+            magic2 = checkBox2.isSelected();
             if(magic2)
                 magicUses = 3;
             else
@@ -286,7 +287,7 @@ public class App extends Application implements IPositionChangeObserver {
         });
     }
 
-    VBox createCharts(ArrayList<String> chartsOrder, ArrayList<XYChart.Series> allChartSeries){
+    VBox createCharts(ArrayList<String> chartsOrder, ArrayList<XYChart.Series<Number,Number>> allChartSeries){
 
         VBox boxCharts = new VBox();
 
@@ -302,12 +303,12 @@ public class App extends Application implements IPositionChangeObserver {
             allCharts.get(i).setCreateSymbols(false);
         }
         for(int i=0;i<2;i++) {
-            allChartSeries.add(new XYChart.Series());
+            allChartSeries.add(new XYChart.Series<>());
             allCharts.get(0).getData().add(allChartSeries.get(i));
             allCharts.get(0).setAnimated(false);
         }
         for(int i=2;i<5;i++) {
-            allChartSeries.add(new XYChart.Series());
+            allChartSeries.add(new XYChart.Series<>());
             allCharts.get(i-1).getData().add(allChartSeries.get(i));
             allCharts.get(i-1).setAnimated(false);
         }
@@ -405,7 +406,7 @@ public class App extends Application implements IPositionChangeObserver {
                 add("Number of animals");
                 add("Number of grass");
                 add("Average energy of living animals");
-                add("Average age of dead animals");
+                add("Average lifespan of dead animals");
                 add("Average children no. of living animals");
             }
         };
@@ -414,8 +415,12 @@ public class App extends Application implements IPositionChangeObserver {
         engine1.setChartsInfo(chartsOrder);
 
         VBox first = new VBox();
-        Label name1 = new Label("Folded map");
-        first.getChildren().add(createInfo(name1, grid1, trackingGrid1, engine1, new Label(), map1, matrix1, labelGens1, magic1, 1));
+        Label name1;
+        if(magic1)
+            name1 = new Label("Magical folded map");
+        else
+            name1 = new Label("Non-magical folded map");
+        first.getChildren().add(createInfo(name1, grid1, trackingGrid1, engine1, new Label(), map1, matrix1, labelGens1, magic1Label, 1));
         first.getChildren().add(createCharts(chartsOrder, allChartSeries1));
         maps.getChildren().add(first);
 
@@ -426,8 +431,12 @@ public class App extends Application implements IPositionChangeObserver {
         engine2.setChartsInfo(chartsOrder);
 
         VBox second = new VBox();
-        Label name2 = new Label("Map with edges");
-        second.getChildren().add(createInfo(name2, grid2, trackingGrid2, engine2, new Label(), map2, matrix2, labelGens2, magic2, 2));
+        Label name2;
+        if(magic2)
+            name2 = new Label("Magical map with edges");
+        else
+            name2 = new Label("Non-magical map with edges");
+        second.getChildren().add(createInfo(name2, grid2, trackingGrid2, engine2, new Label(), map2, matrix2, labelGens2, magic2Label, 2));
         second.getChildren().add(createCharts(chartsOrder, allChartSeries2));
         maps.getChildren().add(second);
 
@@ -524,18 +533,18 @@ public class App extends Application implements IPositionChangeObserver {
         if(map == map1) {
             Platform.runLater(() -> {
                 switch (howManyTimes) {
-                    case 1 -> magic1.setText("Wow, was it magic?");
-                    case 2 -> magic1.setText("Hey! Magic happened second time!");
-                    case 3 -> magic1.setText("Third time?? Amazing!!!");
+                    case 1 -> magic1Label.setText("Wow, was it magic?");
+                    case 2 -> magic1Label.setText("Hey! Magic happened second time!");
+                    case 3 -> magic1Label.setText("Magic third time?? Amazing!!!");
                 }
             });
         }
         if(map == map2){
             Platform.runLater(() -> {
                 switch (howManyTimes) {
-                    case 1 -> magic2.setText("Wow, was it magic?");
-                    case 2 -> magic2.setText("Hey! Magic happened second time!");
-                    case 3 -> magic2.setText("Third time?? Amazing!!!");
+                    case 1 -> magic2Label.setText("Wow, was it magic?");
+                    case 2 -> magic2Label.setText("Hey! Magic happened second time!");
+                    case 3 -> magic2Label.setText("Magic third time?? Amazing!!!");
                 }
             });
         }
