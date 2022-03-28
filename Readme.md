@@ -4,16 +4,6 @@ Niniejsza treść została zaadaptowana na podstawie opisu oraz ilustracji przyg
 Inspiracją dla niego była z kolei książka "Land of Lisp" Conrada Barskiego, który zaś zainspirował się artykułem w
 "Scientific American" :-)
 
-## Formularz z linkiem do repozytorium
-
-https://forms.gle/wCFZecEAk81VAYTM8
-
-
-## Termin oddania projektu
-
-* 21.12.2021 godz. 23:59:59 CET - normalny termin oddania projektu
-* 23.12.2021 godz. 23:59:59 CET - późny termin oddania projektu tzn. -2 krwinki
-
 ## Cel projektu
 
 Stwórzmy grę! Nie będzie to jednak gra, w którą my gramy. Zamiast tego będzie
@@ -21,27 +11,18 @@ to świat, który ewoluuje na naszych oczach! Stworzymy środowisko stepów
 i dżungli ze zwierzętami, które biegają, buszują w zaroślach, jedzą i rozmnażają
 się. A po kilka milionach lat zobaczymy, że wyewoluowały w różne gatunki!
 
-<img src="zwierzak.jpg"/>
-
 Świat naszej gry jest niezmiernie prosty. Składa się ze zwykłej, prostokątnej
 połaci, której brzegi zawijają się na drugą stronę[^1]. Większość świata pokrywają
 stepy, na których rośnie niewiele roślin stanowiących pożywienie zwierząt. Na
 środku świata znajduje się niewielka dżungla, gdzie rośliny rosną dużo szybciej. 
 
-[^1]: Docelowa implementacja obejmuje dwa warianty mapy.
-
-<img src="dzungla.jpg"/>
+[^1]: Implementacja obejmuje dwa warianty mapy.
 
 Nasze zwierzęta, które są roślinożercami, będą przemierzały ten świat w poszukiwaniu pożywienia. Każde zwierzę ma
 określoną energię, która zmniejsza się co dnia. Znalezienie i zjedzenie rośliny zwiększa poziom energii o pewną wartość.
 
 Rośliny będą wyrastały w losowych miejscach, ale ich koncentracja będzie większa w dżungli niż na stepie. Codziennie w
 naszym świecie pojawią się dwie nowe rośliny – jedna w każdej ze stref.
-
-## Anatomia zwierzęcia
-
-
-<img src="zwierzak2.jpg"/>
 
 Musimy śledzić kilka cech każdego zwierzęcia. Po pierwsze, zarówno w przypadku rośliny jak i tych, którzy je zjadają,
 musimy znać koordynaty `x` i `y`. Wskazują nam one, gdzie dane zwierzę lub roślina jest na mapie.  Musimy także wiedzieć,
@@ -50,8 +31,6 @@ pożywienia, będzie głodować i umrze. Atrybut "energia" mówi nam, ile dni zo
 koniecznie znaleźć więcej jedzenia, zanim zapas energii się wyczerpie.  Musimy także pamiętać, w którą stronę zwrócone
 jest zwierzę. Jest to ważne, ponieważ będzie ono przechodzić na sąsiedni kwadracik na mapie świata każdego dnia. Jest
 osiem różnych możliwych obrotów.
-
-<img src="kierunki.jpg"/>
 
 Obrót `0` oznacza, że zwierzę nie zmienia swojej orientacji, obrót `1` oznacza, że zwierzę obraca się o 45°, `2`, o 90°,
 itd. Przykładowo, jeśli zwierzę było skierowane na północ i obrót wynosi `1`, to zwierzę skierowane jest na
@@ -142,11 +121,3 @@ jest parametrem symulacji.
    pojedynczą epokę. Na końcu pliku mają pojawić się wartości uśrednione.
 8. Uruchomienie programu musi być możliwe za pomocą komendy Gradla. Implikuje to, że zależności aplikacji muszą być
    obsługiwane za pomocą Gradle'a.
-
-[Często zadawane pytania](faq.md)
-
-# Przykładowe implementacje
-
-Uwaga: przedstawione implementacje niekoniecznie spełniają wymaga przestawione w sekcji "Szczegółowe wymagania".
-
-* https://www.youtube.com/watch?v=4FangGEpwe4
