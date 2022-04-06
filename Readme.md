@@ -1,4 +1,4 @@
-# The project has been carried out as part of the Object-Oriented Programming subject in the field of Computer Science at the AGH University of Science and Technology
+# Project implemented as part of the Object-Oriented Programming subject on Computer Science at the AGH University of Science and Technology
 
 The aim of the project was to create simulation where there are animals (symbolised as pacmans) which move, eat grass in order to increase their enegry (which is nessescary to survive, the more energy animal has, the darker it is), age and copulate with each other exchanging theirs' geens (geens symbolise the preferences of each animal how often they will rotate in which direction).
 ---
@@ -18,3 +18,4 @@ The beggining of the simulation:
 After some time:
 ![alt text](https://github.com/Loloxon/Animal-simulation/blob/master/images/simulation2.png)
 
+The exact instructions which I have followed can be found here (in Polish): https://github.com/apohllo/obiektowe-lab/blob/master/proj1/Readme.md
